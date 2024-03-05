@@ -1,0 +1,21 @@
+├── .env
+├── .gitignore
+├── .prettierrc
+├── bun.lockb
+├── docker-compose.yml
+├── Dockerfile
+├── package.json
+├── README.md
+├── src
+│  ├── commands.ts
+│  ├── index.ts
+│  ├── types.ts
+│  └── utils
+│    ├── binance
+│    │  ├── binance-managment.ts
+│    │  └── types.ts
+│    ├── funding-rate.ts
+│    │  ├── index.ts.ts
+│    │  └── types.ts
+│    └── logger.ts
+└── tsconfig.json
