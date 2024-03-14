@@ -17,9 +17,9 @@ export default function SecondBotHandlers() {
     }
     frbot2 = new FRBot({
       id: 2,
-      CFRV: 0,
-      NFRV: 0,
-      updateInterval: 60 * 3,
+      CFRV: BOTS.second.settings.CFRV,
+      NFRV: BOTS.second.settings.NFRV,
+      updateInterval: BOTS.second.settings.updateInterval,
       tgBot: bot,
       msg,
     });

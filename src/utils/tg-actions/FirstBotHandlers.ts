@@ -2,6 +2,7 @@ import { KEYBOARD } from "@/src/keyboard";
 import { BOTS, bot } from "@/src";
 import { FRBot } from "@/src/utils/bots";
 import { closeKeyboard } from "./closeKeyboard";
+
 /** --------------------------------------------------- *
  *                   First bot handlers                 *
  * ---------------------------------------------------- */

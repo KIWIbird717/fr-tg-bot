@@ -49,16 +49,19 @@ export class FRBot {
         console.log(uniqueSymbols, uniqueSymbols.length);
         let symbols_message = "";
         for (const symbol of uniqueSymbols) {
-          symbols_message += `• <b>${symbol.symbol}</b>   FR: ${
-            Number(symbol.lastFundingRate) * 100
-          }\n`;
+          const symbolFR = (Number(symbol.lastFundingRate) * 100).toFixed(4);
+          symbols_message += `• <b>${symbol.symbol}</b>   FR: ${symbolFR}\n`;
         }
         const currTime = `Время: ${new Date().toLocaleTimeString("ru-RU")}`;
         await this.tgBot.sendMessage(
           this.msg.chat.id,
-          `⭐️ Бот № ${
-            this.id
-          } \n\n 📈 <b>Обновлен список монет доступных для входа</b> \n\n${symbols_message} \n\n${currTime}\ntask timestamp: ${new Date().getTime()}`,
+          `
+            ⭐️ Бот № ${this.id} \n\n 
+            📈 <b>Обновлен список монет доступных для входа</b> \n\n
+            ${symbols_message} \n\n
+            ${currTime}\n
+            task timestamp: ${new Date().getTime()}
+          `,
           { parse_mode: "HTML" },
         );
       }
