@@ -1,15 +1,4 @@
-# fr-bot
+# timeweb
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.14. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+ssh root@85.193.88.29
+rc83yTJv_i+nJK

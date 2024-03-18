@@ -19,16 +19,26 @@ export class SymbolsFRArray extends Array<ISFRelement> {
   }
 
   /** if index was not provided it will push new element to the array */
-  public pushOrUpdateSymbol = (symbolArr: ISFRelement, index?: number): void => {
+  public pushOrUpdateSymbol = (
+    symbolArr: ISFRelement,
+    index?: number,
+  ): { addedSymbol: ISFRelement | null; replacedSymbol: ISFRelement | null } => {
+    let addedSymbol: ISFRelement | null = null;
+    let replacedSymbol: ISFRelement | null = null;
+
     if (!index) index = this.array.findIndex((item) => item.symbol === symbolArr.symbol);
 
     if (index !== -1) {
       // Symbol already exists, replace the item
       this.array[index] = { ...symbolArr, latestUpdate: this.array[index].latestUpdate };
+      replacedSymbol = symbolArr;
     } else {
       // Symbol doesn't exist, push the new item
       this.array.push({ ...symbolArr });
+      addedSymbol = symbolArr;
     }
+
+    return { addedSymbol, replacedSymbol };
   };
 
   public sortArrayByFundingRate = (): void => {
@@ -170,6 +180,8 @@ export class FundingRateAnalisator extends BinanceManagment {
    * make trade on it
    */
   public analise = async () => {
+    const replacedSymbForEnterence: ISFRelement[] = [];
+    const addedSymbolsForEnterence: ISFRelement[] = [];
     try {
       // parse current symbol`s FR from Binance
       const newBinanceFR = (await this.client.futuresMarkPrice()) as IMarkPriceResult[];
@@ -201,10 +213,13 @@ export class FundingRateAnalisator extends BinanceManagment {
                 // if symbol`s FR under CFRV, remove from newCoinSearchAria
                 this.newCoinSearchAria.removeBySymbolName(symbol.symbol);
                 // and push to symbolsAvaliableToEnter
-                this.symbolsAvaliableToEnter.pushOrUpdateSymbol({
-                  ...market,
-                  latestUpdate: new Date(),
-                });
+                const { replacedSymbol, addedSymbol } =
+                  this.symbolsAvaliableToEnter.pushOrUpdateSymbol({
+                    ...market,
+                    latestUpdate: new Date(),
+                  });
+                if (replacedSymbol) replacedSymbForEnterence.push(replacedSymbol);
+                if (addedSymbol) addedSymbolsForEnterence.push(addedSymbol);
               }
             }
           });
@@ -221,13 +236,19 @@ export class FundingRateAnalisator extends BinanceManagment {
       newBinanceFR.forEach((market) => {
         this.symbolsAvaliableToEnter.getArray.forEach((symbol) => {
           if (market.symbol === symbol.symbol) {
-            this.symbolsAvaliableToEnter.pushOrUpdateSymbol({
-              ...market,
-              latestUpdate: symbol.latestUpdate,
-            });
+            const { replacedSymbol, addedSymbol } = this.symbolsAvaliableToEnter.pushOrUpdateSymbol(
+              {
+                ...market,
+                latestUpdate: symbol.latestUpdate,
+              },
+            );
+            if (replacedSymbol) replacedSymbForEnterence.push(replacedSymbol);
+            if (addedSymbol) addedSymbolsForEnterence.push(addedSymbol);
           }
         });
       });
+
+      return { replacedSymbForEnterence, addedSymbolsForEnterence };
     } catch (error) {
       Logger.error(error);
       throw error;

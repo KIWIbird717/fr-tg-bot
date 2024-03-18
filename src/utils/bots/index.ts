@@ -1,6 +1,7 @@
 import TelegramBot from "node-telegram-bot-api";
 import { FundingRateAnalisator } from "../funding-rate.ts/index.ts";
 import { Logger } from "../logger.js";
+import { ISFRelement } from "../funding-rate.ts/types.js";
 
 type Props = {
   id: number;
@@ -14,6 +15,7 @@ type Props = {
 export class FRBot {
   private runningFlag: boolean = false;
   private interval: NodeJS.Timeout | null = null;
+  private funding: FundingRateAnalisator | null = null;
 
   private readonly id: number;
   private readonly CFRV: number;
@@ -32,40 +34,57 @@ export class FRBot {
   }
 
   private analise() {
-    const funding = new FundingRateAnalisator({
+    this.funding = new FundingRateAnalisator({
       CFRV: this.CFRV,
       NFRV: this.NFRV,
     });
 
     this.interval = setInterval(async () => {
+      if (!this.funding) throw new Error("FundingRateAnalisator is not initialized");
+
       if (!this.runningFlag && this.interval) {
         clearInterval(this.interval);
+        return;
       }
-      await funding.analise();
-      const uniqueSymbols = funding.getSymbolsAvaliableToEnter;
-      Logger.log("uniqueSymbols", uniqueSymbols);
-
-      if (uniqueSymbols.length > 0) {
-        console.log(uniqueSymbols, uniqueSymbols.length);
-        let symbols_message = "";
-        for (const symbol of uniqueSymbols) {
-          const symbolFR = (Number(symbol.lastFundingRate) * 100).toFixed(4);
-          symbols_message += `• <b>${symbol.symbol}</b>   FR: ${symbolFR}\n`;
-        }
-        const currTime = `Время: ${new Date().toLocaleTimeString("ru-RU")}`;
-        await this.tgBot.sendMessage(
-          this.msg.chat.id,
-          `
-            ⭐️ Бот № ${this.id} \n\n 
-            📈 <b>Обновлен список монет доступных для входа</b> \n\n
-            ${symbols_message} \n\n
-            ${currTime}\n
-            task timestamp: ${new Date().getTime()}
-          `,
-          { parse_mode: "HTML" },
-        );
-      }
+      const { replacedSymbForEnterence: updatedSymbols, addedSymbolsForEnterence: newSymbols } =
+        await this.funding.analise();
+      Logger.debug("updatedSymbols", updatedSymbols);
+      Logger.debug("newSymbols", newSymbols);
+      if (!updatedSymbols.length && !newSymbols.length) return;
+      this.symbolsOutput({ updatedSymbols, newSymbols });
     }, 1000 * this.updateInterval);
+  }
+
+  private symbolsOutput({
+    updatedSymbols,
+    newSymbols,
+  }: {
+    updatedSymbols: ISFRelement[];
+    newSymbols: ISFRelement[];
+  }) {
+    let updated_symbols_message = "";
+    for (const symbol of updatedSymbols) {
+      const symbolFR = (Number(symbol.lastFundingRate) * 100).toFixed(4);
+      updated_symbols_message += `• <b>${symbol.symbol}</b>   FR: ${symbolFR}\n`;
+    }
+    let new_symbols_message = "";
+    for (const symbol of newSymbols) {
+      const symbolFR = (Number(symbol.lastFundingRate) * 100).toFixed(4);
+      new_symbols_message += `• <b>${symbol.symbol}</b>   FR: ${symbolFR}\n`;
+    }
+    this.tgBot.sendMessage(
+      this.msg.chat.id,
+      `
+        ⭐️ Бот № ${this.id} \n
+        📈 <b>Обновлен список монет доступных для входа</b> \n\n
+        <b>Новые:</b>\n
+        ${new_symbols_message} \n\n
+        <b>Обновленные:</b>\n
+        ${updated_symbols_message} \n\n
+        task timestamp: ${new Date().getTime()}
+      `,
+      { parse_mode: "HTML" },
+    );
   }
 
   public start(): void {
