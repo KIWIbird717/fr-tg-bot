@@ -27,14 +27,6 @@ export default function MenuHandlers() {
               text: KEYBOARD.settingsSecondBot,
             },
           ],
-          // [
-          //   {
-          //     text: KEYBOARD.statusFirstBot,
-          //   },
-          //   {
-          //     text: KEYBOARD.statusSecondBot,
-          //   },
-          // ],
           [
             {
               text: KEYBOARD.closeMenu,
